@@ -48,13 +48,12 @@ sha256sums=('cbad7bf4be2607e1725db156d73c799d267a79fc29a572c3136a5deb9c9be948')
 
 
 prepare() {
-  cd "${srcdir}"
+
+  # 1. Make the AppImage executable and extract it
   chmod +x "${_appimage_filename}"
-  
-  # Extract to modify the desktop entry and icons
   ./"${_appimage_filename}" --appimage-extract
   
-  # Create directories for the extracted assets
+  # 2. Setup directory structure inside squashfs-root for the build process
   mkdir -p "${srcdir}/squashfs-root/assets/icons/"
   mkdir -p "${srcdir}/squashfs-root/assets/launchers/"
 
@@ -67,12 +66,11 @@ prepare() {
   if [ -f "squashfs-root/${_desktop_file}" ]; then
     cp "squashfs-root/${_desktop_file}" "squashfs-root/assets/launchers/${_desktop_file}"
 
-
-     #4. CRITICAL: Rewrite the .desktop file to point to new path
-     #This rewrites the 'Exec' line so it will execute the AppImage from /opt/appimages/
-     #If the .desktop and svg files will be provided in the PKGBUILD directory, comment out the next two lines that start with sed.
-  sed -i "s|Exec=.*|Exec=${_install_path} %U|" "${srcdir}/squashfs-root/assets/launchers/org.darktable.darktable.desktop"
-  sed -i "s|TryExec=.*|TryExec=${_install_path}|" "${srcdir}/squashfs-root/assets/launchers/org.darktable.darktable.desktop"
+  # 4. CRITICAL: Rewrite the .desktop file to point to new path
+  #    This rewrites the 'Exec' line so it will execute the AppImage from /opt/appimages/
+  #    If the .desktop and svg files will be provided in the PKGBUILD directory, comment out the next two lines that start with "desktop-file-edit".
+    desktop-file-edit --set-key=Exec --set-value="${_install_path} %U" "squashfs-root/assets/launchers/${_desktop_file}"
+    desktop-file-edit --set-key=TryExec --set-value="${_install_path}" "squashfs-root/assets/launchers/${_desktop_file}"
   fi  
 }
 
@@ -90,5 +88,5 @@ package() {
 
   # 3. Create the symlink in /usr/bin for starting package easily from terminal
   install -d "${pkgdir}/usr/bin"
-  ln -s "${_install_path}" "${pkgdir}/usr/bin/darktable"
+  ln -s "${_install_path}" "${pkgdir}/usr/bin/${_pkgname}"
 }

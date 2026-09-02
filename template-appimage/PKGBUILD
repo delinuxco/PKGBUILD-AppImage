@@ -71,9 +71,9 @@ prepare() {
   if [ -f "squashfs-root/${_desktop_file}" ]; then
     cp "squashfs-root/${_desktop_file}" "squashfs-root/assets/launchers/${_desktop_file}"
 
-#     4. CRITICAL: Rewrite the .desktop file to point to new path
-#     This rewrites the 'Exec' line so it will execute the AppImage from /opt/appimages/
-#     If the .desktop and svg files will be provided in the PKGBUILD directory, comment out the next two lines that start with "desktop-file-edit".
+  # 4. CRITICAL: Rewrite the .desktop file to point to new path
+  #    This rewrites the 'Exec' line so it will execute the AppImage from /opt/appimages/
+  #    If the .desktop and svg files will be provided in the PKGBUILD directory, comment out the next two lines that start with "desktop-file-edit".
     desktop-file-edit --set-key=Exec --set-value="${_install_path} %U" "squashfs-root/assets/launchers/${_desktop_file}"
     desktop-file-edit --set-key=TryExec --set-value="${_install_path}" "squashfs-root/assets/launchers/${_desktop_file}"
   fi
