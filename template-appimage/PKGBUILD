@@ -12,7 +12,7 @@ arch=('x86_64')
 url="https://openrgb.org/"
 license=('GPL-3.0-or-later') # Replace with actual license
 provides=('your-app-name')
-conflicts=('your-app-name-bin' 'your-app-name-desktop')
+conflicts=('your-app-name')
 
 # The filename as it appears in the download URL (e.g., app-1.0.0-x86_64.AppImage)
 _appimage_filename="your-app-${pkgver}-x86_64.AppImage"
@@ -24,7 +24,7 @@ _source_url="https://example.com/downloads/your-app-${pkgver}-x86_64.AppImage"
 _install_dir="/opt/appimages"
 _install_path="${_install_dir}/${_pkgname}.AppImage"
 
-# Inside the AppImage, what is the name of the .desktop file? 
+# Inside the AppImage, what is the name of the .desktop file?
 # Usually it matches the app name, e.g., 'org.kde.kcalc.desktop'
 _desktop_file="your-app.desktop"
 
@@ -38,6 +38,10 @@ depends=(
     'libxcrypt-compat' # Often needed for older AppImages on Arch but can removed for newer AppImages
 )
 
+makedepends=(
+    'desktop-file-utils'
+)
+
 # Add any optional dependencies
 optdepends=()
 
@@ -48,8 +52,7 @@ source=("${_source_url}")
 sha256sums=('sha256sum_goes_here')
 
 prepare() {
-  cd "${srcdir}"
-  
+
   # 1. Make the AppImage executable and extract it
   chmod +x "${_appimage_filename}"
   ./"${_appimage_filename}" --appimage-extract
@@ -66,12 +69,12 @@ prepare() {
 
   if [ -f "squashfs-root/${_desktop_file}" ]; then
     cp "squashfs-root/${_desktop_file}" "squashfs-root/assets/launchers/${_desktop_file}"
-    
+
 #     4. CRITICAL: Rewrite the .desktop file to point to new path
 #     This rewrites the 'Exec' line so it will execute the AppImage from /opt/appimages/
 #     If the .desktop and svg files will be provided in the PKGBUILD directory, comment out the next two lines that start with sed.
-    sed -i "s|Exec=.*|Exec=${_install_path} %U|" "squashfs-root/assets/launchers/${_desktop_file}"
-    sed -i "s|TryExec=.*|TryExec=${_install_path}|" "squashfs-root/assets/launchers/${_desktop_file}"
+    desktop-file-edit --set-key=Exec --set-value="${_install_path} %U" "squashfs-root/assets/launchers/${_desktop_file}"
+    desktop-file-edit --set-key=TryExec --set-value="${_install_path}" "squashfs-root/assets/launchers/${_desktop_file}"
   fi
 }
 
@@ -81,9 +84,6 @@ package() {
   install -Dm755 "${srcdir}/${_appimage_filename}" "${pkgdir}${_install_path}"
 
   # 2. Install the Desktop Entry and Icon to standard system paths
-  install -d "${pkgdir}/usr/share/applications"
-  install -d "${pkgdir}/usr/share/icons/hicolor/scalable/apps"
-
   if [ -f "${srcdir}/squashfs-root/assets/launchers/${_desktop_file}" ]; then
     install -Dm644 "squashfs-root/assets/launchers/${_desktop_file}" "${pkgdir}/usr/share/applications/${_desktop_file}"
   fi
@@ -96,4 +96,3 @@ package() {
   install -d "${pkgdir}/usr/bin"
   ln -s "${_install_path}" "${pkgdir}/usr/bin/${pkgname}"
 }
-
