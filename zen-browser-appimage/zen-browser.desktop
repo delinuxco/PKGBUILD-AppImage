@@ -1,0 +1,32 @@
+[Desktop Entry]
+Name=Zen Browser
+Comment=Experience tranquillity while browsing the web without people tracking you!
+Exec=/opt/appimages/zen-browser.AppImage %u
+Icon=zen-browser
+Type=Application
+MimeType=text/html;text/xml;application/xhtml+xml;x-scheme-handler/http;x-scheme-handler/https;application/x-xpinstall;application/pdf;application/json;
+StartupWMClass=zen
+Categories=Network;WebBrowser;
+StartupNotify=true
+Terminal=false
+X-MultipleArgs=false
+Keywords=Internet;WWW;Browser;Web;Explorer;
+Actions=new-window;new-private-window;profilemanager;new-jailed-window
+X-AppImage-Version=1.19.8b
+Name[en_US]=zen-browser
+
+[Desktop Action new-window]
+Name=Open a New Window
+Exec=/opt/appimages/zen-browser.AppImage %u
+
+[Desktop Action new-private-window]
+Name=Open a New Private Window
+Exec=/opt/appimages/zen-browser.AppImage --private-window %u
+
+[Desktop Action profilemanager]
+Name=Open the Profile Manager
+Exec=/opt/appimages/zen-browser.AppImage --ProfileManager %u
+
+[Desktop Action new-jailed-window]
+Name=Run Zen-Browser Jailed
+Exec=firejail --appimage /opt/appimages/zen-browser.AppImage %u

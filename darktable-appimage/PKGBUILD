@@ -1,0 +1,94 @@
+# Maintainer: John Machado <john at delinuxco dot com>
+
+###############################################################################
+# CONFIGURATION SECTION
+# Replace these values with your specific application details.
+###############################################################################
+pkgname=darktable-appimage
+_pkgname=darktable
+pkgver=5.6.0
+pkgrel=3
+pkgdesc="Darktable is an open source photography workflow application and raw developer."
+arch=('x86_64')
+url="https://www.darktable.org/"
+license=('GPL-3.0')
+provides=('darktable')
+conflicts=('darktable-desktop' 'darktable-bin')
+
+# The filename as it appears in the download URL (e.g., app-1.0.0-x86_64.AppImage)
+_appimage_filename="${_pkgname}-${pkgver}-x86_64.AppImage"
+
+# The source URL to download AppImage
+_source_url="https://github.com/darktable-org/darktable/releases/download/release-${pkgver}/darktable-${pkgver}-x86_64.AppImage"
+
+# Where the file will live in your system (Standard is /opt/appimages/)
+_install_dir="/opt/appimages"
+_install_path="${_install_dir}/${pkgname}.AppImage"
+
+# Inside the AppImage, what is the name of the .desktop file? 
+# Usually it matches the app name, e.g., 'org.kde.kcalc.desktop'
+_desktop_file="org.darktable.darktable.desktop"
+
+# Inside the AppImage, what is the name of the icon file?
+_icon_file="darktable.svg"
+###############################################################################
+
+depends=(
+    'fuse2'
+    'fuse3'
+)
+# Add any optional dependencies
+optdepends=()
+
+options=(!strip)
+
+# All source files in root directory of PKGBUILD must be listed and with corresponding sha256/md5 sums
+source=("${_source_url}")
+sha256sums=('cbad7bf4be2607e1725db156d73c799d267a79fc29a572c3136a5deb9c9be948')
+
+
+prepare() {
+  cd "${srcdir}"
+  chmod +x "${_appimage_filename}"
+  
+  # Extract to modify the desktop entry and icons
+  ./"${_appimage_filename}" --appimage-extract
+  
+  # Create directories for the extracted assets
+  mkdir -p "${srcdir}/squashfs-root/assets/icons/"
+  mkdir -p "${srcdir}/squashfs-root/assets/launchers/"
+
+  # 3. Move the icon and desktop file to assets directory in squashfs for easy installation
+  # Note: We check if they exist to prevent build failure if names differ
+  if [ -f "squashfs-root/${_icon_file}" ]; then
+    cp "squashfs-root/${_icon_file}" "squashfs-root/assets/icons/${_icon_file}"
+  fi
+
+  if [ -f "squashfs-root/${_desktop_file}" ]; then
+    cp "squashfs-root/${_desktop_file}" "squashfs-root/assets/launchers/${_desktop_file}"
+
+
+     #4. CRITICAL: Rewrite the .desktop file to point to new path
+     #This rewrites the 'Exec' line so it will execute the AppImage from /opt/appimages/
+     #If the .desktop and svg files will be provided in the PKGBUILD directory, comment out the next two lines that start with sed.
+  sed -i "s|Exec=.*|Exec=${_install_path} %U|" "${srcdir}/squashfs-root/assets/launchers/org.darktable.darktable.desktop"
+  sed -i "s|TryExec=.*|TryExec=${_install_path}|" "${srcdir}/squashfs-root/assets/launchers/org.darktable.darktable.desktop"
+  fi  
+}
+
+package() {
+  # 1. Install the actual AppImage to /opt/appimages/
+  install -d "${pkgdir}/opt/appimages"
+  install -Dm755 "${srcdir}/${_appimage_filename}" "${pkgdir}${_install_path}"
+
+  # 2. Install the modified Desktop Entry and Icon
+  install -d "${pkgdir}/usr/share/applications"
+  install -d "${pkgdir}/usr/share/icons/hicolor/scalable/apps"
+  
+  install -Dm644 "${srcdir}/squashfs-root/assets/icons/darktable.svg" "${pkgdir}/usr/share/icons/hicolor/scalable/apps/${_icon_file}"
+  install -Dm644 "${srcdir}/squashfs-root/assets/launchers/org.darktable.darktable.desktop" "${pkgdir}/usr/share/applications/${_desktop_file}"
+
+  # 3. Create the symlink in /usr/bin for starting package easily from terminal
+  install -d "${pkgdir}/usr/bin"
+  ln -s "${_install_path}" "${pkgdir}/usr/bin/darktable"
+}
