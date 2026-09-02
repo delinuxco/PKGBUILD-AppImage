@@ -4,7 +4,8 @@
 # CONFIGURATION SECTION
 # Replace these values with your specific application details.
 ###############################################################################
-pkgname=your-app-name-appimage
+pkgname=appname-appimage
+_pkgname=appname
 pkgver=1.0.0
 pkgrel=1
 pkgdesc="Open source RGB lighting control that doesn't depend on manufacturer software."
@@ -72,7 +73,7 @@ prepare() {
 
 #     4. CRITICAL: Rewrite the .desktop file to point to new path
 #     This rewrites the 'Exec' line so it will execute the AppImage from /opt/appimages/
-#     If the .desktop and svg files will be provided in the PKGBUILD directory, comment out the next two lines that start with sed.
+#     If the .desktop and svg files will be provided in the PKGBUILD directory, comment out the next two lines that start with "desktop-file-edit".
     desktop-file-edit --set-key=Exec --set-value="${_install_path} %U" "squashfs-root/assets/launchers/${_desktop_file}"
     desktop-file-edit --set-key=TryExec --set-value="${_install_path}" "squashfs-root/assets/launchers/${_desktop_file}"
   fi
@@ -94,5 +95,5 @@ package() {
 
   # 3. Create the symlink in /usr/bin so you can launch it from terminal via 'appname'
   install -d "${pkgdir}/usr/bin"
-  ln -s "${_install_path}" "${pkgdir}/usr/bin/${pkgname}"
+  ln -s "${_install_path}" "${pkgdir}/usr/bin/${_pkgname}"
 }
