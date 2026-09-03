@@ -80,7 +80,7 @@ prepare() {
 }
 
 package() {
-  # 1. Install the actual AppImage to /opt/appimages/"https://github.com/darktable-org/darktable/releases/download/release-${pkgver}/darktable-${pkgver}-x86_64.AppImag
+  # 1. Install the actual AppImage to /opt/appimages/
   install -d "${pkgdir}${_install_dir}"
   install -Dm755 "${srcdir}/${_appimage_filename}" "${pkgdir}${_install_path}"
 

@@ -60,7 +60,6 @@ sha256sums=(
 )
 
 prepare() {
-  cd "${srcdir}"
   
   # 1. Make the AppImage executable and extract it
   chmod +x "${_appimage_filename}"
@@ -79,11 +78,11 @@ prepare() {
   if [ -f "${_desktop_file}" ]; then
     cp "${_desktop_file}" "squashfs-root/assets/launchers/${_desktop_file}"
     
-#     4. CRITICAL: Rewrite the .desktop file to point to new path
-#     This rewrites the 'Exec' line so it will execute the AppImage from /opt/appimages/
-#     If the .desktop and svg files will be provided in the PKGBUILD directory, comment out the next two lines that start with sed.
-    ##sed -i "s|Exec=.*|Exec=${_install_path} %U|" "squashfs-root/assets/launchers/${_desktop_file}"
-    ##sed -i "s|TryExec=.*|TryExec=${_install_path}|" "squashfs-root/assets/launchers/${_desktop_file}"
+  # 4. CRITICAL: Rewrite the .desktop file to point to new path
+  #    This rewrites the 'Exec' line so it will execute the AppImage from /opt/appimages/
+  #    If the .desktop and svg files will be provided in the PKGBUILD directory, comment out the next two lines that start with "desktop-file-edit".
+    ##desktop-file-edit --set-key=Exec --set-value="${_install_path} %U" "squashfs-root/assets/launchers/${_desktop_file}"
+    ##desktop-file-edit --set-key=TryExec --set-value="${_install_path}" "squashfs-root/assets/launchers/${_desktop_file}"
   fi
 }
 
@@ -93,9 +92,6 @@ package() {
   install -Dm755 "${srcdir}/${_appimage_filename}" "${pkgdir}${_install_path}"
 
   # 2. Install the Desktop Entry and Icon to standard system paths
-  install -d "${pkgdir}/usr/share/applications"
-  install -d "${pkgdir}/usr/share/icons/hicolor/scalable/apps"
-
   if [ -f "${srcdir}/squashfs-root/assets/launchers/${_desktop_file}" ]; then
     install -Dm644 "squashfs-root/assets/launchers/${_desktop_file}" "${pkgdir}/usr/share/applications/${_desktop_file}"
   fi
