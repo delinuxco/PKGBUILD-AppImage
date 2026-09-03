@@ -37,6 +37,11 @@ depends=(
     'fuse2'
     'fuse3'
 )
+
+makedepends=(
+    'desktop-file-utils'
+)
+
 # Add any optional dependencies
 optdepends=()
 
